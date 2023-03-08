@@ -14,6 +14,7 @@ class App extends React.Component {
     // When Firebase changes, update local state, which will update local UI
     this.state = {
       messages: [],
+      userInput: "",
     };
   }
 
@@ -28,29 +29,45 @@ class App extends React.Component {
       }));
     });
   }
-
+  handleInput = (event) => {
+    this.setState({ userInput: event.target.value });
+  };
   // Note use of array fields syntax to avoid having to manually bind this method to the class
-  writeData = () => {
+  writeData = (event) => {
+    event.preventDefault();
     const messageListRef = ref(database, DB_MESSAGES_KEY);
     const newMessageRef = push(messageListRef);
-    set(newMessageRef, "abc");
+    let date = new Date();
+    set(newMessageRef, {
+      val: this.state.userInput,
+      dateTime: date.toLocaleDateString() + " " + date.toLocaleTimeString(),
+    });
+    this.setState({
+      userInput: "",
+    });
   };
 
   render() {
     // Convert messages in state to message JSX elements to render
     let messageListItems = this.state.messages.map((message) => (
-      <li key={message.key}>{message.val}</li>
+      <li key={message.key}>
+        {message.val.val} {message.val.dataTime}
+      </li>
     ));
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          {/* TODO: Add input field and add text input as messages in Firebase */}
-          <button onClick={this.writeData}>Send</button>
-          <ol>{messageListItems}</ol>
+          <p>please type message to store in the database</p>
+          <form onSubmit={this.writeData}>
+            <input
+              type="input"
+              value={this.state.userInput}
+              onChange={this.handleInput}
+            />
+            <input type="submit" value="Submit" />
+            <ol>{messageListItems}</ol>
+          </form>
         </header>
       </div>
     );
